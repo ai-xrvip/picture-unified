@@ -65,7 +65,7 @@ python run.py 4khd
 | meirentu | `TG_TOKEN` | 是 | bot token |
 | meirentu | `TG_CHAT_ID_A` / `TG_CHAT_ID_B` | 是 | 非VIP / VIP 频道 ID |
 | meirentu | `VIP_LINK` | 否 | 非VIP 频道会员引导链接（默认 xiuren88bot） |
-| 4khd | `TG_TOKEN` | 是 | bot token |
+| 4khd | `TG_TOKEN_4KHD` | 是 | 4khd 专用 bot token（与 meirentu 分开） |
 | 4khd | `TG_CHAT_ID_4KHD` | 是 | 主频道 ID |
 | 4khd | `TG_GROUP_ID` | 否 | 可选群组（不配则不发） |
 | 4khd | `AI_API_KEY` / `AI_BASE_URL` / `AI_MODEL` | 否 | DeepSeek 标签（默认 deepseek-chat） |
@@ -80,7 +80,7 @@ python run.py 4khd
    - 公共：`TELEGRAPH_TOKEN`
    - eh：`BOT_TOKEN`、`MAIN_CHANNEL_ID`、`EH_MEMBER_ID`、`EH_PASS_HASH`、`EH_CF_CLEARANCE`（可选）、`AGNES_API_KEY`、`AGNES_MODEL`、`AGNES_BASE_URL`（可选）
    - meirentu：`TG_TOKEN`、`TG_CHAT_ID_A`、`TG_CHAT_ID_B`、`VIP_LINK`（可选）
-   - 4khd：`TG_TOKEN`、`TG_CHAT_ID_4KHD`、`TG_GROUP_ID`（可选）、`AI_API_KEY`、`AI_BASE_URL`、`AI_MODEL`（可选）
+   - 4khd：`TG_TOKEN_4KHD`、`TG_CHAT_ID_4KHD`、`TG_GROUP_ID`（可选）、`AI_API_KEY`、`AI_BASE_URL`、`AI_MODEL`（可选）
 3. 调度频率（与原项目一致，可在各自 workflow 里改 cron）：
    - `eh.yml`：每 12 小时（`0 */12 * * *`）
    - `meirentu.yml`：每天 UTC 22:00 = 北京 6:00（`0 22 * * *`）

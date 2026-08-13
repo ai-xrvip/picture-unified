@@ -41,7 +41,7 @@ jobs:
       - name: Run 4khd source
         env:
           PYTHONUNBUFFERED: "1"
-          TG_TOKEN: ${{ secrets.TG_TOKEN }}
+          TG_TOKEN_4KHD: ${{ secrets.TG_TOKEN_4KHD }}
           TG_CHAT_ID_4KHD: ${{ secrets.TG_CHAT_ID_4KHD }}
           TG_GROUP_ID: ${{ secrets.TG_GROUP_ID }}
           AI_API_KEY: ${{ secrets.AI_API_KEY }}

@@ -23,7 +23,7 @@ from core import telegram as tg_send
 from .base import register
 
 # ── 环境变量 ──────────────────────────────────────────────
-TOKEN = cfg.getenv("TG_TOKEN")
+TOKEN = cfg.getenv("TG_TOKEN_4KHD") or cfg.getenv("TG_TOKEN")
 AI_API_KEY = cfg.getenv("AI_API_KEY")
 AI_BASE_URL = cfg.getenv("AI_BASE_URL") or "https://api.deepseek.com"
 AI_MODEL = cfg.getenv("AI_MODEL") or "deepseek-chat"
