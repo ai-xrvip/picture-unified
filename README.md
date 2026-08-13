@@ -1,4 +1,4 @@
-# 统一爬取框架（picture-unified）
+﻿# 统一爬取框架（picture-unified）
 
 三个独立项目（`4khd` / `eh` / `xrw`）合并为一个仓库、一套核心代码、一套 GitHub Actions 调度。
 公共流水线只写一遍：**抓列表 → 抓图集直链 → 下载 → 上传/直链 → Telegraph 页面 → 封面发 TG → 记录 seen**。
@@ -68,7 +68,7 @@ python run.py 4khd
 | 4khd | `TG_TOKEN_4KHD` | 是 | 4khd 专用 bot token（与 meirentu 分开） |
 | 4khd | `TG_CHAT_ID_4KHD` | 是 | 主频道 ID |
 | 4khd | `TG_GROUP_ID` | 否 | 可选群组（不配则不发） |
-| 4khd | `AI_API_KEY` / `AI_BASE_URL` / `AI_MODEL` | 否 | DeepSeek 标签（默认 deepseek-chat） |
+| 4khd | `AI_API_KEY` / `AI_BASE_URL` / `AI_MODEL` | 否 | AI 标签；不配则复用 `AGNES_API_KEY`（Agnes） |
 
 频道配置默认在 `channels.json`（`${VAR}` 会从环境变量解析）；也可以给某个源单独覆盖：
 `CHANNELS_EH='[{"chat_id":"@xxx"}]'`、`CHANNELS_MEIRENTU='[...]'`、`CHANNELS_4KHD='[...]'`。
@@ -80,7 +80,7 @@ python run.py 4khd
    - 公共：`TELEGRAPH_TOKEN`
    - eh：`BOT_TOKEN`、`MAIN_CHANNEL_ID`、`EH_MEMBER_ID`、`EH_PASS_HASH`、`EH_CF_CLEARANCE`（可选）、`AGNES_API_KEY`、`AGNES_MODEL`、`AGNES_BASE_URL`（可选）
    - meirentu：`TG_TOKEN`、`TG_CHAT_ID_A`、`TG_CHAT_ID_B`、`VIP_LINK`（可选）
-   - 4khd：`TG_TOKEN_4KHD`、`TG_CHAT_ID_4KHD`、`TG_GROUP_ID`（可选）、`AI_API_KEY`、`AI_BASE_URL`、`AI_MODEL`（可选）
+   - 4khd：`TG_TOKEN_4KHD`、`TG_CHAT_ID_4KHD`、`TG_GROUP_ID`（可选）；AI 标签可复用 `AGNES_API_KEY`，无需单独配
 3. 调度频率（与原项目一致，可在各自 workflow 里改 cron）：
    - `eh.yml`：每 12 小时（`0 */12 * * *`）
    - `meirentu.yml`：每天 UTC 22:00 = 北京 6:00（`0 22 * * *`）
