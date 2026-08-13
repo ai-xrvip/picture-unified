@@ -30,9 +30,17 @@ EH_MEMBER_ID = cfg.getenv("EH_MEMBER_ID")
 EH_PASS_HASH = cfg.getenv("EH_PASS_HASH")
 EH_CF_CLEARANCE = cfg.getenv("EH_CF_CLEARANCE")
 TELEGRAPH_TOKEN = cfg.getenv("TELEGRAPH_TOKEN")
-AGNES_API_KEY = cfg.getenv("AGNES_API_KEY")
-AGNES_BASE_URL = (cfg.getenv("AGNES_BASE_URL") or "https://apihub.agnes-ai.com/v1").rstrip("/")
-AGNES_MODEL = cfg.getenv("AGNES_MODEL") or "agnes-2.0-flash"
+# AI 打标签：优先 DeepSeek（AI_API_KEY）；未配置时回退 Agnes（AGNES_API_KEY）
+AI_API_KEY = cfg.getenv("AI_API_KEY") or cfg.getenv("AGNES_API_KEY")
+AI_BASE_URL = cfg.getenv("AI_BASE_URL")
+if not AI_BASE_URL:
+    if cfg.getenv("AI_API_KEY"):
+        AI_BASE_URL = "https://api.deepseek.com"
+    else:
+        AI_BASE_URL = cfg.getenv("AGNES_BASE_URL") or "https://apihub.agnes-ai.com/v1"
+AI_BASE_URL = AI_BASE_URL.rstrip("/")
+AI_MODEL = (cfg.getenv("AI_MODEL") or cfg.getenv("AGNES_MODEL")
+            or ("deepseek-chat" if cfg.getenv("AI_API_KEY") else "agnes-2.0-flash"))
 
 # ── 常量 ──────────────────────────────────────────────────
 COSPLAY_URL = "https://e-hentai.org/?f_cats=959"
@@ -88,76 +96,39 @@ def generate_tags(title: str) -> str:
     return " ".join(tags)
 
 
-# ========= AI 中文标题 + 标签（Agnes） =========
+# ========= AI 标签（DeepSeek，OpenAI 兼容；沿用 4khd 提示词） =========
 
-AGNES_SYSTEM_PROMPT = (
-    "你是 cosplay 图集翻译打标助手。根据图集标题，输出中文标题和 3-6 个标签。"
-    "只输出一个 JSON 对象，不要输出其他任何内容，格式："
-    "{\"title\": \"中文标题\", \"tags\": [\"标签1\", \"标签2\", \"标签3\"]}"
-    "中文标题：把作品名、角色名、主题翻译成中文，保留作者昵称等专名，已经是中文的部分保持不变。"
-    "标签：能用中文就用中文（角色名、作品名、主题），没有标准中文译名的专名保留原文。"
-    "示例：「Velvet-chann - Link Ninja」→ {\"title\": \"Velvetchann - 塞尔达 林克 忍者\", \"tags\": [\"塞尔达\", \"林克\", \"忍者\", \"cosplay\"]}"
+TAGS_SYSTEM_PROMPT = (
+    "你是一个写真/Cosplay标签专家。根据以下写真标题，提取3-5个最贴切的标签。\n"
+    "标签用中文或英文都可以，每个标签以#开头。\n"
+    "重点关注：角色名、作品/游戏名、服装类型、风格特征。\n"
+    "只返回标签，用空格分隔，不要任何解释。\n\n"
+    "标题: {title}\n\n"
+    "示例输出: #Cosplay #兔女郎 #碧蓝航线 #泳装 #黑丝"
 )
 
 
-def parse_agnes_json(content: str):
-    """从 Agnes 返回内容中提取 JSON 对象，失败返回 None"""
-    m = re.search(r"\{.*\}", content, re.S)
-    if not m:
+def generate_tags_ai(title):
+    """调用 DeepSeek 生成标签（4khd 同款提示词）；失败返回 None，由规则标签兜底。"""
+    if not AI_API_KEY:
+        print("  ⚠️ 未配置 AI_API_KEY，使用规则标签")
         return None
-    try:
-        data = json.loads(m.group(0))
-        if isinstance(data, dict):
-            return data
-    except Exception:
-        pass
-    return None
-
-
-def generate_title_and_tags_ai(title: str):
-    """调用 Agnes AI 生成中文标题和标签；失败时回退原标题 + 规则标签。返回 (标题, 标签串)"""
-    if not AGNES_API_KEY:
-        print("  ⚠️ 未配置 AGNES_API_KEY，使用原标题 + 规则标签")
-        return title, generate_tags(title)
-
     content = ai_core.ask_chat(
-        AGNES_BASE_URL, AGNES_API_KEY, AGNES_MODEL,
-        AGNES_SYSTEM_PROMPT, f"标题：{title}",
-        max_tokens=800, temperature=0.4,
+        AI_BASE_URL, AI_API_KEY, AI_MODEL, "",
+        TAGS_SYSTEM_PROMPT.format(title=title),
+        max_tokens=80, temperature=0.3,
+        attempts=2, retry_429_wait=30,
     )
     if not content:
-        print("  ⚠️ Agnes 重试次数用尽，使用原标题 + 规则标签")
-        return title, generate_tags(title)
-
-    data = parse_agnes_json(content)
-    if not data:
-        print("  ⚠️ Agnes 返回不是有效 JSON，使用原标题 + 规则标签")
-        return title, generate_tags(title)
-
-    zh_title = str(data.get("title", "")).strip()
-    raw_tags = data.get("tags")
-    if isinstance(raw_tags, str):
-        raw_tags = re.split(r"[\s,,、，;\n]+", raw_tags)
-    tags = []
-    if isinstance(raw_tags, list):
-        for t in raw_tags:
-            t = str(t).strip().lstrip("#")
-            if not t or not any(ch.isalnum() for ch in t):
-                continue
-            if t.lower() not in [x.lower() for x in tags]:
-                tags.append(t)
-    tags = tags[:8]
-
-    if zh_title:
-        if tags:
-            result = " ".join(f"#{t}" for t in tags)
-            print(f"  🤖 AI 标题: {zh_title}")
-            print(f"  🤖 AI 标签: {result}")
-            return zh_title, result
-        print("  ⚠️ Agnes 未返回有效标签，标签使用规则标签")
-        return zh_title, generate_tags(title)
-    print("  ⚠️ Agnes 未返回有效标题，使用原标题")
-    return title, generate_tags(title)
+        print("  ⚠️ AI 标签生成失败，使用规则标签")
+        return None
+    tags = re.findall(r"#[\w一-鿿\-_]+", content)
+    if not tags:
+        tags = re.findall(r"[\w一-鿿]{2,8}", content)
+        tags = [f"#{t}" for t in tags]
+    result = " ".join(list(dict.fromkeys(tags))[:8])
+    print(f"  🤖 AI 标签: {result}")
+    return result
 
 
 # ========= 抓列表 =========
@@ -373,7 +344,8 @@ def run(args):
 
         print(f"  ✅ 成功上传 {len(img_urls)}/{len(urls)} 张到 pixhost")
 
-        zh_title, tags = generate_title_and_tags_ai(g["title"])
+        zh_title = g["title"]
+        tags = generate_tags_ai(zh_title) or generate_tags(zh_title)
 
         telegraph_url = tg_core.create_page(
             TELEGRAPH_TOKEN, zh_title, img_urls,

@@ -61,7 +61,7 @@ python run.py 4khd
 | eh | `MAIN_CHANNEL_ID` | 是 | 频道（如 `@cos4khd`） |
 | eh | `EH_MEMBER_ID` / `EH_PASS_HASH` | 是 | e-hentai 会员 cookie（ipb_*） |
 | eh | `EH_CF_CLEARANCE` | 否 | cf_clearance cookie，过期需从浏览器复制 |
-| eh | `AGNES_API_KEY` / `AGNES_MODEL` / `AGNES_BASE_URL` | 否 | Agnes AI（默认 agnes-2.0-flash） |
+| eh | `AI_API_KEY` / `AI_BASE_URL` / `AI_MODEL` | 否 | AI 标签（DeepSeek，4khd 同款提示词；未配则回退 Agnes） |
 | meirentu | `TG_TOKEN` | 是 | bot token |
 | meirentu | `TG_CHAT_ID_A` / `TG_CHAT_ID_B` | 是 | 非VIP / VIP 频道 ID |
 | meirentu | `VIP_LINK` | 否 | 非VIP 频道会员引导链接（默认 xiuren88bot） |
@@ -78,7 +78,7 @@ python run.py 4khd
 1. 新建仓库（**建议 private**），把本目录推上去。
 2. 在仓库 Settings → Secrets and variables → Actions 配置 secrets：
    - 公共：`TELEGRAPH_TOKEN`
-   - eh：`BOT_TOKEN`、`MAIN_CHANNEL_ID`、`EH_MEMBER_ID`、`EH_PASS_HASH`、`EH_CF_CLEARANCE`（可选）、`AGNES_API_KEY`、`AGNES_MODEL`、`AGNES_BASE_URL`（可选）
+   - eh：`BOT_TOKEN`、`MAIN_CHANNEL_ID`、`EH_MEMBER_ID`、`EH_PASS_HASH`、`EH_CF_CLEARANCE`（可选）；AI 标签用 `AI_API_KEY`（DeepSeek，与 4khd 共用）
    - meirentu：`TG_TOKEN`、`TG_CHAT_ID_A`、`TG_CHAT_ID_B`、`VIP_LINK`（可选）
    - 4khd：`TG_TOKEN_4KHD`、`TG_CHAT_ID_4KHD`、`TG_GROUP_ID`（可选）；AI 标签可复用 `AGNES_API_KEY`，无需单独配
 3. 调度频率（与原项目一致，可在各自 workflow 里改 cron）：
