@@ -1,0 +1,70 @@
+﻿name: crawl-eh
+
+on:
+  schedule:
+    - cron: "0 */12 * * *"   # 每 12 小时（原 eh 频率）
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: "本次处理上限（留空=全部）"
+        required: false
+        default: ""
+      dry_run:
+        description: "1=只分析不发送"
+        required: false
+        default: ""
+
+concurrency:
+  group: crawl-eh
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  eh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run EH source
+        env:
+          PYTHONUNBUFFERED: "1"
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          MAIN_CHANNEL_ID: ${{ secrets.MAIN_CHANNEL_ID }}
+          EH_MEMBER_ID: ${{ secrets.EH_MEMBER_ID }}
+          EH_PASS_HASH: ${{ secrets.EH_PASS_HASH }}
+          EH_CF_CLEARANCE: ${{ secrets.EH_CF_CLEARANCE }}
+          TELEGRAPH_TOKEN: ${{ secrets.TELEGRAPH_TOKEN }}
+          AGNES_API_KEY: ${{ secrets.AGNES_API_KEY }}
+          AGNES_MODEL: ${{ secrets.AGNES_MODEL }}
+          AGNES_BASE_URL: ${{ secrets.AGNES_BASE_URL }}
+        run: |
+          ARGS="eh"
+          [ -n "${{ github.event.inputs.limit }}" ] && ARGS="$ARGS --limit ${{ github.event.inputs.limit }}"
+          [ "${{ github.event.inputs.dry_run }}" = "1" ] && ARGS="$ARGS --dry-run"
+          python run.py $ARGS
+
+      - name: Commit state
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add state/
+          if git diff --staged --quiet; then
+            echo "No changes"
+          else
+            git commit -m "chore: update eh state [skip ci]"
+            git push
+          fi

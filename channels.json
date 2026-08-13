@@ -1,0 +1,13 @@
+﻿{
+  "eh": [
+    { "chat_id": "${MAIN_CHANNEL_ID}" }
+  ],
+  "meirentu": [
+    { "chat_id": "${TG_CHAT_ID_A}", "max_images": 20, "vip_link": "${VIP_LINK}" },
+    { "chat_id": "${TG_CHAT_ID_B}", "max_images": 0, "vip_link": "" }
+  ],
+  "4khd": [
+    { "chat_id": "${TG_CHAT_ID_4KHD}" },
+    { "chat_id": "${TG_GROUP_ID}", "optional": true }
+  ]
+}

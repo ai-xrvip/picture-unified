@@ -1,0 +1,66 @@
+﻿name: crawl-meirentu
+
+on:
+  schedule:
+    - cron: "0 22 * * *"   # UTC 22:00 = 北京时间次日 6:00（原 xrw 频率）
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: "本次处理上限（留空=每天默认 6 套）"
+        required: false
+        default: ""
+      dry_run:
+        description: "1=只分析不发送"
+        required: false
+        default: ""
+
+concurrency:
+  group: crawl-meirentu
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  meirentu:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run Meirentu source
+        env:
+          PYTHONUNBUFFERED: "1"
+          TG_TOKEN: ${{ secrets.TG_TOKEN }}
+          TG_CHAT_ID_A: ${{ secrets.TG_CHAT_ID_A }}
+          TG_CHAT_ID_B: ${{ secrets.TG_CHAT_ID_B }}
+          VIP_LINK: ${{ secrets.VIP_LINK }}
+          TELEGRAPH_TOKEN: ${{ secrets.TELEGRAPH_TOKEN }}
+        run: |
+          ARGS="meirentu"
+          [ -n "${{ github.event.inputs.limit }}" ] && ARGS="$ARGS --limit ${{ github.event.inputs.limit }}"
+          [ "${{ github.event.inputs.dry_run }}" = "1" ] && ARGS="$ARGS --dry-run"
+          python run.py $ARGS
+
+      - name: Commit state
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add state/
+          if git diff --staged --quiet; then
+            echo "No changes"
+          else
+            git commit -m "chore: update meirentu state [skip ci]"
+            git push
+          fi
