@@ -7,7 +7,7 @@
 
 | 源 | 原项目 | 网站 | 图片策略 | 发送目标 | AI |
 |---|---|---|---|---|---|
-| `eh` | E:\codex\picture\eh | e-hentai.org cosplay (f_cats=959) | pixhost 上传 | 频道 @cos4khd | Agnes 中文标题+标签 |
+| `eh` | E:\codex\picture\eh | e-hentai.org cosplay (f_cats=959) | pixhost 上传 | 频道 @cos4khd | DeepSeek 中文标题+标签 |
 | `meirentu` | 原 E:\codex\picture\xrw | meirentu.cc（页内从底往上；标题自动清洗） | pixhost 上传 | 双频道（非VIP 前20张 / VIP 全图） | 无 |
 | `4khd` | E:\codex\picture\4khd | 4khd.com（首页+cosplay） | Telegraph 直嵌原图 | 频道 + 可选群组 | DeepSeek 标签 / 本地库 |
 
@@ -61,7 +61,7 @@ python run.py 4khd
 | eh | `MAIN_CHANNEL_ID` | 是 | 频道（如 `@cos4khd`） |
 | eh | `EH_MEMBER_ID` / `EH_PASS_HASH` | 是 | e-hentai 会员 cookie（ipb_*） |
 | eh | `EH_CF_CLEARANCE` | 否 | cf_clearance cookie，过期需从浏览器复制 |
-| eh | `AI_API_KEY` / `AI_BASE_URL` / `AI_MODEL` | 否 | AI 标签（DeepSeek，4khd 同款提示词；未配则回退 Agnes） |
+| eh | `AI_API_KEY` / `AI_BASE_URL` / `AI_MODEL` | 否 | AI 中文标题+标签（DeepSeek；未配则回退 Agnes 标签） |
 | meirentu | `TG_TOKEN` | 是 | bot token |
 | meirentu | `TG_CHAT_ID_A` / `TG_CHAT_ID_B` | 是 | 非VIP / VIP 频道 ID |
 | meirentu | `VIP_LINK` | 否 | 非VIP 频道会员引导链接（默认 xiuren88bot） |
