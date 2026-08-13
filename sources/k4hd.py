@@ -43,6 +43,7 @@ MAX_PAGES = 10
 MIN_CAT_PAGES = 5
 MAX_IMAGES = 9999
 MAX_UPLOAD_IMAGES = int(cfg.getenv("MAX_UPLOAD_IMAGES", "9999"))  # 单帖最多上传 pixhost 的张数（可 env 覆盖）
+PIXHOST_UPLOAD = cfg.getenv("PIXHOST_UPLOAD", "0") == "1"  # 1=逐张上传 pixhost（慢）；默认 0=Telegraph 直嵌原图（快）
 BASE_URL = "https://www.4khd.com/"
 CROP_RATIO = 0.015   # 四边各裁 1.5%
 TG_CAPTION_MAX = 1024
@@ -526,16 +527,21 @@ def process_post(title, post_url, cover_url_from_list, channels, dry_run):
     print(f"  🏷️ 标签: {tag_str}")
 
     if dry_run:
-        print(f"  [dry-run] 将下载 {len(urls)} 张 → 裁剪1.5% → pixhost 上传 → Telegraph 发送到 {len(channels)} 个频道")
+        mode = "pixhost 上传" if PIXHOST_UPLOAD else "Telegraph 直嵌"
+        print(f"  [dry-run] 将发送到 {len(channels)} 个频道，{mode} {len(urls)} 张图")
         return True
 
-    hosted_urls = download_crop_upload_all(SESSION, urls, post_url)
-    if not hosted_urls:
-        print("  ❌ 图片上传全部失败")
-        return False
+    if PIXHOST_UPLOAD:
+        hosted_urls = download_crop_upload_all(SESSION, urls, post_url)
+        if not hosted_urls:
+            print("  ❌ 图片上传全部失败")
+            return False
+        page_urls = hosted_urls
+    else:
+        page_urls = urls
 
     telegraph_url = tg_core.create_page(
-        TELEGRAPH_TOKEN, clean_t, hosted_urls,
+        TELEGRAPH_TOKEN, clean_t, page_urls,
         author_name="4KHD Bot", footer="promo",
     )
 
