@@ -1,4 +1,4 @@
-﻿"""统一网络工具：带重试的 GET、会话构建。"""
+"""统一网络工具：带重试的 GET、会话构建。"""
 import time
 
 import requests

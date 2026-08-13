@@ -1,4 +1,4 @@
-﻿"""统一图床层：pixhost 上传（eh/xrw 原逻辑合并）。"""
+"""统一图床层：pixhost 上传（eh/xrw 原逻辑合并）。"""
 import time
 
 import requests

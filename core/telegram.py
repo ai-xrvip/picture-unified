@@ -1,4 +1,4 @@
-﻿"""统一 Telegram 发送（requests 直连 Bot API）。"""
+"""统一 Telegram 发送（requests 直连 Bot API）。"""
 import time
 
 import requests

@@ -1,4 +1,4 @@
-﻿# 统一爬取框架（picture-unified）
+# 统一爬取框架（picture-unified）
 
 三个独立项目（`4khd` / `eh` / `xrw`）合并为一个仓库、一套核心代码、一套 GitHub Actions 调度。
 公共流水线只写一遍：**抓列表 → 抓图集直链 → 下载 → 上传/直链 → Telegraph 页面 → 封面发 TG → 记录 seen**。

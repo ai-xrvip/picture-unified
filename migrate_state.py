@@ -1,4 +1,4 @@
-﻿"""一次性迁移旧项目状态到统一仓库 state/。
+"""一次性迁移旧项目状态到统一仓库 state/。
 
 用法：
   python migrate_state.py                        # 默认读取 E:/codex/picture

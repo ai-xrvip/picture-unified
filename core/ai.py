@@ -1,4 +1,4 @@
-﻿"""统一 AI 调用（OpenAI 兼容 /chat/completions），429 自动退避。"""
+"""统一 AI 调用（OpenAI 兼容 /chat/completions），429 自动退避。"""
 import time
 
 import requests

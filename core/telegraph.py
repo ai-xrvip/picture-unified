@@ -1,4 +1,4 @@
-﻿"""统一 Telegraph 页面创建。"""
+"""统一 Telegraph 页面创建。"""
 import os
 
 import requests
