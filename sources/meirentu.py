@@ -15,6 +15,7 @@ import urllib3
 
 urllib3.disable_warnings()
 
+from core import ai as ai_core
 from core import config as cfg
 from core import images as img_core
 from core import network
@@ -27,6 +28,17 @@ from .base import register
 # ── 环境变量 ──────────────────────────────────────────────
 TOKEN = cfg.getenv("TG_TOKEN")
 TELEGRAPH_TOKEN = cfg.getenv("TELEGRAPH_TOKEN")
+# AI 打标签：优先 AI_API_KEY（DeepSeek，与 eh/4khd 共用）；未配置时复用 eh 的 AGNES_API_KEY
+AI_API_KEY = cfg.getenv("AI_API_KEY") or cfg.getenv("AGNES_API_KEY")
+AI_BASE_URL = cfg.getenv("AI_BASE_URL")
+if not AI_BASE_URL:
+    if cfg.getenv("AI_API_KEY"):
+        AI_BASE_URL = "https://api.deepseek.com"
+    else:
+        AI_BASE_URL = cfg.getenv("AGNES_BASE_URL") or "https://apihub.agnes-ai.com/v1"
+AI_BASE_URL = AI_BASE_URL.rstrip("/")
+AI_MODEL = (cfg.getenv("AI_MODEL") or cfg.getenv("AGNES_MODEL")
+            or ("deepseek-chat" if cfg.getenv("AI_API_KEY") else "agnes-2.0-flash"))
 DEFAULT_VIP_LINK = cfg.getenv("VIP_LINK") or "https://t.me/xiuren88bot?start=buy_487"
 
 ALBUMS_PER_DAY = int(cfg.getenv("ALBUMS_PER_DAY", "6"))
@@ -69,6 +81,32 @@ def clean_title(title):
     t = re.sub(r"\s*\d+\s*P\s*$", "", t, flags=re.IGNORECASE)
     # 压缩空白并去掉首尾多余分隔符
     return re.sub(r"\s+", " ", t).strip(" .-·")
+
+
+def generate_tags(title):
+    """DeepSeek 生成 3-5 个中文标签；未配置/失败返回空串。"""
+    if not AI_API_KEY or not title:
+        return ""
+    prompt = (
+        "你是秀人写真标题标签专家。根据下面的写真标题，生成 3-5 个最贴切的标签。\n"
+        "要求：\n"
+        "1. 标签用中文，每个以 # 开头\n"
+        "2. 优先提取：模特名、主题/场景（如 浴室、泡泡浴、校园）、服装/风格（如 丝袜、制服、泳装）\n"
+        "3. 只输出标签，用空格分隔，不要任何解释、冒号或引号\n\n"
+        f"标题：{title}\n\n"
+        "示例输出：#潘思沁 #浴室 #泡泡浴 #主题写真"
+    )
+    content = ai_core.ask_chat(
+        AI_BASE_URL, AI_API_KEY, AI_MODEL, "",
+        prompt, max_tokens=100, temperature=0.3, attempts=1,
+    )
+    if not content:
+        return ""
+    tags = re.findall(r"#[\w一-鿿\-_]+", content)
+    if not tags:
+        tags = re.findall(r"[\w一-鿿]{2,8}", content)
+        tags = [f"#{t}" for t in tags]
+    return " ".join(list(dict.fromkeys(tags))[:5])
 
 
 def fix_url(src):
@@ -216,6 +254,10 @@ def process_album(album, seen, state, channels, dry_run, limit_mode=False):
             print(f"  [dry-run] 频道 {ch['chat_id']}: {count} 张（{vip_desc}）")
         return True
 
+    tag_str = generate_tags(title)
+    if tag_str:
+        print(f"  🏷️ 标签: {tag_str}")
+
     # 下载封面（第一张图）
     print("  📥 下载封面...")
     cover_data, cover_type = img_core.download_image(SESSION, image_urls[0], referer=album["url"])
@@ -259,7 +301,8 @@ def process_album(album, seen, state, channels, dry_run, limit_mode=False):
             continue
         print(f"  ✅ 页面: {telegraph_url}")
 
-        caption = f"{title}\n\n<a href=\"{telegraph_url}\">👉 点击观看图集</a>"
+        caption_head = f"{title}\n{tag_str}" if tag_str else title
+        caption = f"{caption_head}\n\n<a href=\"{telegraph_url}\">👉 点击观看图集</a>"
         print(f"  📸 发送封面到频道 {ch['chat_id']}...")
         tg_send.send_photo(TOKEN, ch["chat_id"], cover_data, cover_type, caption)
         sent_any = True

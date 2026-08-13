@@ -46,6 +46,9 @@ jobs:
           TG_CHAT_ID_B: ${{ secrets.TG_CHAT_ID_B }}
           VIP_LINK: ${{ secrets.VIP_LINK }}
           TELEGRAPH_TOKEN: ${{ secrets.TELEGRAPH_TOKEN }}
+          AI_API_KEY: ${{ secrets.AI_API_KEY }}
+          AI_BASE_URL: ${{ secrets.AI_BASE_URL }}
+          AI_MODEL: ${{ secrets.AI_MODEL }}
         run: |
           ARGS="meirentu"
           [ -n "${{ github.event.inputs.limit }}" ] && ARGS="$ARGS --limit ${{ github.event.inputs.limit }}"
