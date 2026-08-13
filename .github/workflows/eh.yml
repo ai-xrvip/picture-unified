@@ -69,5 +69,6 @@ jobs:
             echo "No changes"
           else
             git commit -m "chore: update eh state [skip ci]"
+            git pull --rebase --autostash
             git push
           fi
