@@ -20,6 +20,7 @@ from core import network
 from core import state as state_core
 from core import telegraph as tg_core
 from core import telegram as tg_send
+from core import uploader as up_core
 from .base import register
 
 # ── 环境变量 ──────────────────────────────────────────────
@@ -41,6 +42,7 @@ TELEGRAPH_TOKEN = cfg.getenv("TELEGRAPH_TOKEN")
 MAX_PAGES = 10
 MIN_CAT_PAGES = 5
 MAX_IMAGES = 9999
+MAX_UPLOAD_IMAGES = int(cfg.getenv("MAX_UPLOAD_IMAGES", "9999"))  # 单帖最多上传 pixhost 的张数（可 env 覆盖）
 BASE_URL = "https://www.4khd.com/"
 CROP_RATIO = 0.015   # 四边各裁 1.5%
 TG_CAPTION_MAX = 1024
@@ -479,6 +481,35 @@ def build_caption(clean_t, tag_str, telegraph_url):
     return f"<b>{truncated_title}</b>{link_part}"
 
 
+def download_crop_upload_all(session, urls, referer):
+    """逐张下载 → 四边各裁 1.5% → pixhost 上传 → 释放内存（借鉴 eh 图床方案）。
+
+    返回 pixhost 直链列表；单张失败跳过，全部失败返回空列表。
+    """
+    hosted = []
+    total = min(len(urls), MAX_UPLOAD_IMAGES)
+    print(f"  ☁️ 逐张下载→裁剪1.5%→pixhost 上传（共 {total} 张，上限 {MAX_UPLOAD_IMAGES}）")
+    for i, url in enumerate(urls[:total], 1):
+        raw = img_core.download_image(
+            session, url, referer=referer, max_size_mb=50, retries=2,
+        )
+        if not raw[0]:
+            print(f"  ⚠️ [{i}/{total}] 下载失败，跳过")
+            continue
+        data, _ctype = raw
+        cropped = img_core.crop_image(data, CROP_RATIO)
+        cropped.seek(0)
+        img_url = up_core.upload_pixhost(cropped.read())
+        del data
+        if img_url:
+            hosted.append(img_url)
+            print(f"  ✅ [{i}/{total}] 裁剪+上传成功")
+        else:
+            print(f"  ⚠️ [{i}/{total}] pixhost 上传失败，跳过")
+        time.sleep(2)
+    return hosted
+
+
 def process_post(title, post_url, cover_url_from_list, channels, dry_run):
     """处理单个帖子，成功返回 True。dry_run 时只统计不发送。"""
     clean_t = clean_title(title) or title.strip()
@@ -495,11 +526,16 @@ def process_post(title, post_url, cover_url_from_list, channels, dry_run):
     print(f"  🏷️ 标签: {tag_str}")
 
     if dry_run:
-        print(f"  [dry-run] 将发送到 {len(channels)} 个频道，Telegraph 直嵌 {len(urls)} 张原图")
+        print(f"  [dry-run] 将下载 {len(urls)} 张 → 裁剪1.5% → pixhost 上传 → Telegraph 发送到 {len(channels)} 个频道")
         return True
 
+    hosted_urls = download_crop_upload_all(SESSION, urls, post_url)
+    if not hosted_urls:
+        print("  ❌ 图片上传全部失败")
+        return False
+
     telegraph_url = tg_core.create_page(
-        TELEGRAPH_TOKEN, clean_t, urls,
+        TELEGRAPH_TOKEN, clean_t, hosted_urls,
         author_name="4KHD Bot", footer="promo",
     )
 
