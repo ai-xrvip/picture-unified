@@ -1,4 +1,4 @@
-﻿name: crawl-meirentu
+name: crawl-meirentu
 
 on:
   schedule:

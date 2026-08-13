@@ -1,4 +1,4 @@
-﻿name: crawl-eh
+name: crawl-eh
 
 on:
   schedule:
