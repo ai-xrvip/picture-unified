@@ -49,7 +49,7 @@ MIN_PAGE = 1
 BASE_URL = "https://meirentu.cc"
 LIST_URL = BASE_URL + "/index/{page}.html"
 TG_INTERVAL = 5      # 每套图集处理完后的休息秒数
-UPLOAD_INTERVAL = int(cfg.getenv("PIXHOST_INTERVAL", "10"))  # 每张图片上传间隔（秒），默认 10s 防封
+UPLOAD_INTERVAL = int(cfg.getenv("PIXHOST_INTERVAL", "3"))  # 每张图片上传间隔（秒），默认 3s
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
