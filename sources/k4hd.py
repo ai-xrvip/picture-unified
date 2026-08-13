@@ -44,7 +44,7 @@ MIN_CAT_PAGES = 5
 MAX_IMAGES = 9999
 MAX_UPLOAD_IMAGES = int(cfg.getenv("MAX_UPLOAD_IMAGES", "9999"))  # 单帖最多上传 pixhost 的张数（可 env 覆盖）
 PIXHOST_UPLOAD = cfg.getenv("PIXHOST_UPLOAD", "0") == "1"  # 1=逐张上传 pixhost（慢）；默认 0=Telegraph 直嵌原图（快）
-UPLOAD_INTERVAL = int(cfg.getenv("PIXHOST_INTERVAL", "3"))  # pixhost 每张上传间隔（秒）
+UPLOAD_INTERVAL = int(cfg.getenv("PIXHOST_INTERVAL", "1"))  # pixhost 每张上传间隔（秒）
 BASE_URL = "https://www.4khd.com/"
 CROP_RATIO = 0.015   # 四边各裁 1.5%
 TG_CAPTION_MAX = 1024
