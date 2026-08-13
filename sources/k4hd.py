@@ -24,9 +24,17 @@ from .base import register
 
 # ── 环境变量 ──────────────────────────────────────────────
 TOKEN = cfg.getenv("TG_TOKEN_4KHD") or cfg.getenv("TG_TOKEN")
-AI_API_KEY = cfg.getenv("AI_API_KEY")
-AI_BASE_URL = cfg.getenv("AI_BASE_URL") or "https://api.deepseek.com"
-AI_MODEL = cfg.getenv("AI_MODEL") or "deepseek-chat"
+# AI 打标签：优先 AI_API_KEY（DeepSeek）；未配置时复用 eh 的 AGNES_API_KEY（Agnes，OpenAI 兼容）
+AI_API_KEY = cfg.getenv("AI_API_KEY") or cfg.getenv("AGNES_API_KEY")
+AI_BASE_URL = cfg.getenv("AI_BASE_URL")
+if not AI_BASE_URL:
+    if cfg.getenv("AI_API_KEY"):
+        AI_BASE_URL = "https://api.deepseek.com"
+    else:
+        AI_BASE_URL = cfg.getenv("AGNES_BASE_URL") or "https://apihub.agnes-ai.com/v1"
+AI_BASE_URL = AI_BASE_URL.rstrip("/")
+AI_MODEL = (cfg.getenv("AI_MODEL") or cfg.getenv("AGNES_MODEL")
+            or ("deepseek-chat" if cfg.getenv("AI_API_KEY") else "agnes-2.0-flash"))
 TELEGRAPH_TOKEN = cfg.getenv("TELEGRAPH_TOKEN")
 
 # ── 常量 ──────────────────────────────────────────────────
