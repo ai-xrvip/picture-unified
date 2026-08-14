@@ -2,7 +2,7 @@
 
 流程：从 index/11.html 往前爬（页内从最底往上）→ 抓图集原图 → pixhost 上传 →
 每频道独立 Telegraph 页面（max_images / vip_link 差异化）→ 封面发对应频道。
-标题自动清洗：去掉 [秀人付费]、.B011、[]88P 等多余字符，保留 秀人番外。
+标题自动清洗：秀人付费→[Xiuren私购流出]，删除 秀人番外、.B011/No.N002、[]88P 等多余字符，保留 Vol.N007 编号。
 状态：state/meirentu_seen.json + state/meirentu_page.txt
 """
 import os
@@ -71,7 +71,7 @@ def load_channels():
 
 
 def clean_title(title):
-    """清洗标题：秀人付费→[Xiuren私购流出]；去掉其他 [xxx] 标签与 .B011/No.N002 系列编号；保留 Vol.N007 类型编号与 秀人番外；去末尾 88P。"""
+    """清洗标题：秀人付费→[Xiuren私购流出]；删除 秀人番外；去掉其他 [xxx] 标签与 .B011/No.N002 系列编号；保留 Vol.N007 类型编号；去末尾 88P。"""
     t = title or ""
     # [秀人付费] → [Xiuren私购流出]（先替换，避免被下面的括号规则删掉）
     t = t.replace("[秀人付费]", "[Xiuren私购流出]")
@@ -80,6 +80,8 @@ def clean_title(title):
     t = re.sub(r"(?:\[Xiuren私购流出\]\s*)+", "[Xiuren私购流出] ", t)
     # 去掉其余 [xxx] 括号标签（保留 [Xiuren私购流出]，如 [XiuRen 秀人] / [128P] / []）
     t = re.sub(r"\[(?!Xiuren私购流出\])[^\]]*\]", "", t)
+    # 删除分类词 秀人番外
+    t = t.replace("秀人番外", "")
     # 去掉 .B011 / No.N002 这类系列编号，但保留 Vol.N007 类型（.N007 前有 Vol 不动）
     t = re.sub(r"(?<![Vv][Oo][Ll])(?:\bNo\.?\s*|\.\s*)[A-Za-z]\d{2,4}\b", "", t)
     # 去掉末尾页数标记（88P / 79P）
