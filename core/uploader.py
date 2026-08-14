@@ -21,6 +21,9 @@ def verify_image_url(url):
     return False
 
 
+PIXHOST_IMAGE_HOSTS = ("img3", "img2", "img4", "img1")  # pixhost CDN 域名会轮换（2026-08 新图已从 img2 迁到 img3）
+
+
 def upload_pixhost(image_data):
     """pixhost.to 上传（content_type=1 成人内容）+ 验证 + 递增退避重试。成功返回直链，失败返回 None。"""
     ext = detect_ext(image_data)
@@ -35,14 +38,18 @@ def upload_pixhost(image_data):
             )
             if r.status_code == 200:
                 resp = r.json()
-                if resp.get("show_url"):
-                    url = resp["show_url"].replace(
-                        "https://pixhost.to/show/", "https://img2.pixhost.to/images/"
-                    )
+                show_url = resp.get("show_url") or ""
+                if show_url:
+                    path = show_url.replace("https://pixhost.to/show/", "")
+                    for host in PIXHOST_IMAGE_HOSTS:
+                        candidate = f"https://{host}.pixhost.to/images/{path}"
+                        if verify_image_url(candidate):
+                            url = candidate
+                            break
         except Exception as e:
             print(f"    ⚠️ pixhost 异常: {e}")
 
-        if url and verify_image_url(url):
+        if url:
             return url
 
         if attempt < MAX_RETRIES:

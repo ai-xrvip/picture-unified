@@ -235,6 +235,21 @@ def parse_album(album):
 
 # ==================== 下载 / 上传 / Telegraph / 发送 ====================
 
+def pixhost_ok():
+    """启动自检：pixhost 从当前机器/runner IP 是否可上传（曾整批失败白跑 2 小时）。"""
+    try:
+        import io as _io
+        from PIL import Image
+        buf = _io.BytesIO()
+        img = Image.frombytes("RGB", (160, 160), os.urandom(160 * 160 * 3))
+        img.save(buf, format="JPEG", quality=80)
+        data = buf.getvalue()
+    except Exception as e:
+        print(f"  ⚠️ 生成测试图失败（{e}），跳过自检")
+        return True
+    return bool(up_core.upload_pixhost(data))
+
+
 def process_album(album, seen, state, channels, dry_run, limit_mode=False):
     """处理一套图集，成功返回 True，失败返回 False"""
     print(f"\n{'='*55}")
@@ -347,6 +362,13 @@ def run(args):
         desc = "全部图片" if ch["max_images"] == 0 else f"前 {ch['max_images']} 张"
         print(f"   - {ch['chat_id']}（{desc}{'，带会员引导' if ch['vip_link'] else ''}）")
     print("🚀 meirentu.cc 图集抓取 → pixhost → Telegraph → 多频道")
+
+    if not args.dry_run:
+        print("🔍 pixhost 自检（上传 1x1 测试图）...")
+        if not pixhost_ok():
+            print("❌ pixhost 当前不可用（上传测试失败），本次运行终止，避免整批失败白跑；稍后手动重试")
+            return 2
+        print("✅ pixhost 可用")
 
     seen_path = os.path.join(args.state_dir, "meirentu_seen.json")
     seen_file = state_core.StateFile(seen_path)
