@@ -49,7 +49,8 @@ MIN_PAGE = 1
 BASE_URL = "https://meirentu.cc"
 LIST_URL = BASE_URL + "/index/{page}.html"
 TG_INTERVAL = 5      # 每套图集处理完后的休息秒数
-UPLOAD_INTERVAL = int(cfg.getenv("PIXHOST_INTERVAL", "1"))  # 每张图片上传间隔（秒），默认 3s
+UPLOAD_INTERVAL = int(cfg.getenv("PIXHOST_INTERVAL", "1"))  # 每张图片上传间隔（秒），默认 1s
+MAX_ALBUM_IMAGES = int(cfg.getenv("MAX_ALBUM_IMAGES", "100"))  # 单套最多上传张数，超过只取前 N 张并仍标记 seen
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
@@ -252,6 +253,9 @@ def process_album(album, seen, state, channels, dry_run, limit_mode=False):
         return False
 
     print(f"  🖼️ 原图 {len(image_urls)} 张")
+    if MAX_ALBUM_IMAGES and len(image_urls) > MAX_ALBUM_IMAGES:
+        print(f"  ✂️ 超过单套上限 {MAX_ALBUM_IMAGES} 张，只发前 {MAX_ALBUM_IMAGES} 张（仍标记已处理）")
+        image_urls = image_urls[:MAX_ALBUM_IMAGES]
 
     if dry_run:
         for ch in channels:
