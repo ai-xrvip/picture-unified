@@ -2,7 +2,7 @@ name: crawl-k4hd
 
 on:
   schedule:
-    - cron: "0 12 * * *"   # 每天 UTC 12:00（原 4khd Gitea 频率）
+    - cron: "0 11 * * *"   # 每天 UTC 11:00 = 北京 19:00（避开 eh 的 UTC 12:00 时段）
   workflow_dispatch:
     inputs:
       limit:
