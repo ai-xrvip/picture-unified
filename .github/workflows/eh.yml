@@ -2,7 +2,7 @@ name: crawl-eh
 
 on:
   schedule:
-    - cron: "0 */12 * * *"   # 每 12 小时（原 eh 频率）
+    - cron: "0 16,22 * * *"   # 北京时间 00:00/06:00 = UTC 16:00/22:00（每天两次）
   workflow_dispatch:
     inputs:
       limit:

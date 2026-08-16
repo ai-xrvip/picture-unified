@@ -2,7 +2,7 @@ name: crawl-k4hd
 
 on:
   schedule:
-    - cron: "0 11 * * *"   # 每天 UTC 11:00 = 北京 19:00（避开 eh 的 UTC 12:00 时段）
+    - cron: "0 4 * * *"   # 每天 UTC 04:00 = 北京 12:00（中午）
   workflow_dispatch:
     inputs:
       limit:
