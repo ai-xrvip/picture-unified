@@ -45,7 +45,7 @@ AI_MODEL = (cfg.getenv("AI_MODEL") or cfg.getenv("AGNES_MODEL")
 # ── 常量 ──────────────────────────────────────────────────
 COSPLAY_URL = "https://e-hentai.org/?f_cats=959"
 MAX_PAGES = 20
-LIST_PAGES = 3  # 列表抓前 3 页（最多 75 个图集），从最旧开始处理
+LIST_PAGES = 2  # 列表抓前 2 页（最多 50 个图集），从最旧开始处理
 UPLOAD_DELAY = 1  # 每张图片上传间隔（秒）
 
 HEADERS = {
